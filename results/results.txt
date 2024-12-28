@@ -1,0 +1,10 @@
+Image: imageformangotree\mango5.jpg
+Anthracnose: 0.00%
+Bacterial Canker: 91.82%
+Cutting Weevil: 0.15%
+Die Back: 0.09%
+Gall Midge: 0.00%
+Healthy: 0.00%
+Powdery Mildew: 1.68%
+Sooty Mould: 6.26%
+Predicted Disease: Bacterial Canker with confidence 91.82%

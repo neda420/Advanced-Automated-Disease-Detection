@@ -3,9 +3,13 @@ import numpy as np
 import cv2
 import tensorflow as tf
 from tensorflow.keras.preprocessing.image import ImageDataGenerator, img_to_array
-from tensorflow.keras import layers, models  # type: ignore
+from tensorflow.keras import layers, models
 from tensorflow.keras.applications import MobileNetV2
 from tensorflow.keras.models import load_model
+import matplotlib.pyplot as plt
+import serial
+import time
+
 
 # Define the directory paths for training and validation datasets
 train_dir = 'D:/opencv/dataset/train'  # Use forward slashes
@@ -30,6 +34,9 @@ train_datagen = ImageDataGenerator(
 
 # Data generator for validation set
 validation_datagen = ImageDataGenerator(rescale=1.0 / 255.0)
+
+# Initialize serial communication with Arduino
+arduino = serial.Serial(port='COM3', baudrate=9600, timeout=1)  # Adjust '/dev/ttyUSB0' as needed
 
 # Creating training and validation datasets
 train_generator = train_datagen.flow_from_directory(
@@ -119,6 +126,16 @@ def predict_image(image_path):
 
     # Display the result
     print(f"Predicted Disease: {class_labels[predicted_class_index]} with confidence {confidence:.2f}%")
+    if confidence >= 70:  # Disease confidence threshold
+        print("High confidence disease detected! Sending signal to Arduino...")
+        arduino.write(b'RUN')  # Send command to Arduino to run the motor
+        time.sleep(2)  # Optional: Allow Arduino to process the command
+    else:
+        print("No significant disease detected.")
+        # After making predictions in predict_image
+    graph_path, result_path = save_prediction_results(image_path, predictions, class_labels)
+    print(f"Graph saved at {graph_path}, Results saved at {result_path}")
+
 
 # Video Processing Function (Real-time Detection)
 def process_video():
@@ -142,6 +159,8 @@ def process_video():
         predictions = model.predict(frame_array)
         predicted_class_index = np.argmax(predictions[0])
         confidence = predictions[0][predicted_class_index] * 100
+        
+        
 
         # Check if there is enough "green" in the frame (indicating leaves)
         hsv_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
@@ -155,8 +174,18 @@ def process_video():
             cv2.putText(frame, f"{class_labels[predicted_class_index]}: {confidence:.2f}%", 
                         (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 255, 0), 2)
         else:
-            cv2.putText(frame, "No tree detected", 
+            cv2.putText(frame, "No tree leafs detected", 
                         (10, 30), cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
+        
+        if confidence >= 70:  # Disease confidence threshold
+            detection_counter += 1
+            if detection_counter >= 15:  # Detected for 15 consecutive seconds
+                print("Persistent disease detected! Sending signal to Arduino...")
+                arduino.write(b'RUN')  # Send command to Arduino
+                time.sleep(2)
+                detection_counter = 0  # Reset counter after sending the signal
+        else:
+            detection_counter = 0  # Reset counter if no disease is detected
 
         # Show the video feed
         cv2.imshow('Video Feed', frame)
@@ -168,6 +197,47 @@ def process_video():
     cap.release()
     cv2.destroyAllWindows()
 
+# Example: Confidence values for each class
+classes = ['Anthracnose', 'Bacterial Canker', 'Die Back', 'Healthy']
+confidences = [93.25, 3.12, 2.18, 1.45]  # Replace with your model's predictions
+
+# Create bar graph
+plt.figure(figsize=(10, 5))
+plt.bar(classes, confidences, color='skyblue')
+plt.xlabel('Disease Types')
+plt.ylabel('Confidence Level (%)')
+plt.title('Confidence Levels of Disease Prediction')
+plt.savefig('confidence_graph.png')
+plt.close()
+
+def save_prediction_results(image_path, predictions, class_labels, output_dir="D:/opencv/results"):
+    # Ensure the output directory exists
+    os.makedirs(output_dir, exist_ok=True)
+
+    # Generate bar chart for confidence levels
+    plt.figure(figsize=(10, 6))
+    plt.bar(class_labels, predictions[0] * 100, color='skyblue')
+    plt.xlabel("Diseases")
+    plt.ylabel("Confidence (%)")
+    plt.title("Prediction Confidence Levels")
+    plt.xticks(rotation=45)
+    
+    # Save the chart
+    graph_path = os.path.join(output_dir, "confidence_graph.png")
+    plt.savefig(graph_path)
+    plt.close()
+    
+    # Write results to a text file
+    result_path = os.path.join(output_dir, "results.txt")
+    with open(result_path, "w") as f:
+        f.write(f"Image: {image_path}\n")
+        for i, label in enumerate(class_labels):
+            f.write(f"{label}: {predictions[0][i] * 100:.2f}%\n")
+        predicted_class_index = np.argmax(predictions[0])
+        f.write(f"Predicted Disease: {class_labels[predicted_class_index]} with confidence {predictions[0][predicted_class_index] * 100:.2f}%\n")
+
+    print(f"Results saved at {output_dir}")
+    return graph_path, result_path
 # Photo Processing Function
 def process_photo(image_path):
     print("Starting Photo Mode...")
