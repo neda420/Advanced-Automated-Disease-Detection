@@ -22,8 +22,8 @@ train_datagen = ImageDataGenerator(
     rotation_range=40,
     width_shift_range=0.2,
     height_shift_range=0.2,
-    shear_range=0.2,
-    zoom_range=0.2,
+    shear_range=0.3,
+    zoom_range=0.5,
     horizontal_flip=True,
     fill_mode='nearest'
 )
@@ -177,8 +177,8 @@ def process_photo(image_path):
 def main():
     while True:
         print("\nChoose an option:")
-        print("0: Video Mode")
-        print("1: Photo Mode")
+        print("0: Video on Mode")
+        print("1: Photo on Mode")
         print("q: Quit")
         
         user_input = input("Enter your choice: ")
