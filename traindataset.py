@@ -1,51 +1,48 @@
 import os
 import shutil
+import random
+from pathlib import Path
 
-# Set the path to the directory containing your images
-source_dir = 'imageformangotree\MangoLeafBD Dataset'  # Change to your actual directory
-# Set the path to the base dataset directory
-base_dir = 'D:/opencv/dataset'
+# Configuration
+SOURCE_DIR = Path('imageformangotree/MangoLeafBD Dataset')
+BASE_DIR = Path('D:/opencv/dataset')
+TRAIN_RATIO = 0.8
 
-# Create train and validation directories
-train_dir = os.path.join(base_dir, 'train')
-validation_dir = os.path.join(base_dir, 'validation')
+disease_classes = [
+    'Anthracnose', 'Bacterial Canker', 'Cutting Weevil', 
+    'Die Back', 'Gall Midge', 'Powdery Mildew', 
+    'Sooty Mould', 'Healthy'
+]
 
-# List of disease classes
-disease_classes = ['Anthracnose', 'Bacterial Canker', 'Cutting Weevil', 'Die Back', 
-                    'Gall Midge', 'Powdery Mildew', 'Sooty Mould', 'Healthy']  # Add more as needed
-
-# Create class directories under train and validation
-for cls in disease_classes:
-    os.makedirs(os.path.join(train_dir, cls), exist_ok=True)
-    os.makedirs(os.path.join(validation_dir, cls), exist_ok=True)
-
-# Function to move images to the respective class folder
-def organize_images():
+def organize_dataset():
     for cls in disease_classes:
-        # Create the path for class folder in the source directory
-        class_source_dir = os.path.join(source_dir, cls)
+        src_path = SOURCE_DIR / cls
+        train_path = BASE_DIR / 'train' / cls
+        val_path = BASE_DIR / 'validation' / cls
 
-        # Check if the class source directory exists
-        if os.path.exists(class_source_dir):
-            # Get all images in the class source directory
-            images = os.listdir(class_source_dir)
+        # Ensure directories exist
+        train_path.mkdir(parents=True, exist_ok=True)
+        val_path.mkdir(parents=True, exist_ok=True)
 
-            # Split images into train and validation sets (80% train, 20% validation)
-            train_images = images[:int(0.8 * len(images))]
-            validation_images = images[int(0.8 * len(images)):]
+        if not src_path.exists():
+            print(f"⚠️ Skipping: {cls} (Source not found)")
+            continue
 
-            # Move images to the train directory
-            for img in train_images:
-                shutil.move(os.path.join(class_source_dir, img), os.path.join(train_dir, cls, img))
+        # Filter for actual image files
+        images = [f for f in os.listdir(src_path) if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
+        random.shuffle(images)
 
-            # Move images to the validation directory
-            for img in validation_images:
-                shutil.move(os.path.join(class_source_dir, img), os.path.join(validation_dir, cls, img))
+        split_idx = int(len(images) * TRAIN_RATIO)
+        train_files = images[:split_idx]
+        val_files = images[split_idx:]
 
-            print(f"Organized {len(images)} images for class '{cls}'.")
+        # Process copies
+        for img in train_files:
+            shutil.copy2(src_path / img, train_path / img)
+        for img in val_files:
+            shutil.copy2(src_path / img, val_path / img)
 
-        else:
-            print(f"Source directory for class '{cls}' does not exist.")
+        print(f"✅ {cls}: {len(train_files)} train, {len(val_files)} val")
 
-# Run the organization function
-organize_images()
+if __name__ == "__main__":
+    organize_dataset()
