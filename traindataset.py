@@ -1,48 +1,52 @@
-import os
 import shutil
 import random
 from pathlib import Path
 
-# Configuration
-SOURCE_DIR = Path('imageformangotree/MangoLeafBD Dataset')
-BASE_DIR = Path('D:/opencv/dataset')
-TRAIN_RATIO = 0.8
+# Set Seed for Research Reproducibility
+SEED = 42
+random.seed(SEED)
 
-disease_classes = [
-    'Anthracnose', 'Bacterial Canker', 'Cutting Weevil', 
-    'Die Back', 'Gall Midge', 'Powdery Mildew', 
-    'Sooty Mould', 'Healthy'
-]
+def prepare_mango_dataset(source_path: str, output_path: str, split=0.8):
+    src_root = Path(source_path)
+    dst_root = Path(output_path)
+    
+    # Automatically detect classes from folder names
+    classes = [d.name for d in src_root.iterdir() if d.is_dir()]
+    total_processed = 0
 
-def organize_dataset():
-    for cls in disease_classes:
-        src_path = SOURCE_DIR / cls
-        train_path = BASE_DIR / 'train' / cls
-        val_path = BASE_DIR / 'validation' / cls
+    print(f"🚀 Starting dataset split (Seed: {SEED})")
 
-        # Ensure directories exist
-        train_path.mkdir(parents=True, exist_ok=True)
-        val_path.mkdir(parents=True, exist_ok=True)
+    for label in classes:
+        # Define paths
+        class_src = src_root / label
+        train_dst = dst_root / 'train' / label
+        val_dst = dst_root / 'validation' / label
 
-        if not src_path.exists():
-            print(f"⚠️ Skipping: {cls} (Source not found)")
-            continue
+        # Initialize folders
+        train_dst.mkdir(parents=True, exist_ok=True)
+        val_dst.mkdir(parents=True, exist_ok=True)
 
-        # Filter for actual image files
-        images = [f for f in os.listdir(src_path) if f.lower().endswith(('.png', '.jpg', '.jpeg'))]
-        random.shuffle(images)
+        # Collect and shuffle
+        files = list(class_src.glob('*.[jJ][pP][gG]')) + list(class_src.glob('*.[pP][nN][gG]'))
+        random.shuffle(files)
 
-        split_idx = int(len(images) * TRAIN_RATIO)
-        train_files = images[:split_idx]
-        val_files = images[split_idx:]
+        split_point = int(len(files) * split)
+        
+        # Internal helper for clean copying
+        def move_set(file_list, target_dir):
+            for f in file_list:
+                shutil.copy2(f, target_dir / f.name)
 
-        # Process copies
-        for img in train_files:
-            shutil.copy2(src_path / img, train_path / img)
-        for img in val_files:
-            shutil.copy2(src_path / img, val_path / img)
+        move_set(files[:split_point], train_dst)
+        move_set(files[split_point:], val_dst)
 
-        print(f"✅ {cls}: {len(train_files)} train, {len(val_files)} val")
+        print(f"  ↳ {label.ljust(15)} | Total: {len(files)} | Train: {split_point} | Val: {len(files)-split_point}")
+        total_processed += len(files)
+
+    print(f"\n✨ Organization complete. Total images: {total_processed}")
 
 if __name__ == "__main__":
-    organize_dataset()
+    prepare_mango_dataset(
+        source_path='imageformangotree/MangoLeafBD Dataset',
+        output_path='D:/opencv/dataset'
+    )
