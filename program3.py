@@ -75,27 +75,7 @@ def process_photo(image_path):
     for disease in diseases:
         disease_mask, _ = detect_disease(resized_image, disease)
         combined_disease_mask = cv2.bitwise_or(combined_disease_mask, disease_mask)
-    
-    # Detect healthy areas not covered by diseases
-    hsv_image = cv2.cvtColor(resized_image, cv2.COLOR_BGR2HSV)
-
-    # Adjusted HSV range for healthy green color
-    lower_bound_healthy = np.array([30, 80, 80])
-    upper_bound_healthy = np.array([90, 255, 255])
-
-    # Create mask for healthy areas
-    healthy_mask = cv2.inRange(hsv_image, lower_bound_healthy, upper_bound_healthy)
-
-    # Visualize the healthy mask before excluding diseased areas
-    cv2.imshow('Healthy Mask Before Excluding Diseased Areas', healthy_mask)
-
-    # Exclude diseased areas from healthy mask
-    healthy_mask = cv2.bitwise_and(healthy_mask, cv2.bitwise_not(combined_disease_mask))
-
-    # Calculate healthy percentage
-    healthy_pixels = cv2.countNonZero(healthy_mask)
-    total_pixels = resized_image.shape[0] * resized_image.shape[1]
-    healthy_percentage = (healthy_pixels / total_pixels) * 100
+   
 
     print(f"Healthy detected: {healthy_percentage:.2f}% of leaf unaffected by diseases.")
 
