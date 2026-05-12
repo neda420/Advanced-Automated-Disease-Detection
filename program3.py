@@ -6,9 +6,7 @@ def detect_disease(image, disease_type):
     # Resize image for easier processing
     image = cv2.resize(image, (600, 400))  
 
-    # Convert image to HSV color space for better color detection
-    hsv_image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-
+    # Convert image to HSV color space for better color 
     # Define disease-specific HSV ranges (adjust based on disease type)
     if disease_type == "Anthracnose":
         lower_bound = np.array([15, 50, 50])
