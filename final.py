@@ -7,7 +7,7 @@ from tensorflow.keras import layers, models  # type: ignore
 from tensorflow.keras.applications import MobileNetV2
 from tensorflow.keras.models import load_model
 
-# Define the directory paths for training and validation datasets
+# Define the directory paths for training and validation datasets make sure the directory.
 train_dir = 'D:/opencv/dataset/train'  # Use forward slashes
 validation_dir = 'D:/opencv/dataset/validation'  # Use forward slashes
 
