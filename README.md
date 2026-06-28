@@ -3,7 +3,6 @@
 This project implements a real-time mango tree disease detection and targeted irrigation system. The solution leverages image processing, machine learning, and hardware automation to detect diseases in mango leaves and provide precise irrigation to affected areas.
 
 ## Features
-
 - **Real-Time Disease Detection**: Uses a CNN model for detecting diseases in mango leaves with high confidence.
 - **Automated Irrigation**: Activates a targeted sprinkler system upon detecting diseased leaves.
 - **Energy Efficiency**: Designed to minimize energy and water usage.
