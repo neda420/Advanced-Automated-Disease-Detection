@@ -11,6 +11,7 @@ from tensorflow.keras.models import load_model
 train_dir = 'D:/opencv/dataset/train'  # Use forward slashes
 validation_dir = 'D:/opencv/dataset/validation'  # Use forward slashes
 
+
 # Image dimensions
 IMG_HEIGHT = 150
 IMG_WIDTH = 150
