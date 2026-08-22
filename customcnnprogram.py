@@ -5,7 +5,7 @@ import tensorflow as tf
 from tensorflow.keras.preprocessing.image import ImageDataGenerator, img_to_array
 from tensorflow.keras import layers, models
 from tensorflow.keras.callbacks import EarlyStopping
-
+ 
 # Define the directory paths for training and validation datasets
 train_dir = 'D:/opencv/dataset/train'  # Use forward slashes
 validation_dir = 'D:/opencv/dataset/validation'  # Use forward slashes
