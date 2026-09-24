@@ -106,7 +106,7 @@ def process_photo(image_path):
         detect_disease(image, disease)
 
 # Main Function
-def main():
+def main(): 
     while True:
         # Ask the user for input to either capture video or photo
         user_input = input("Press 0 for Video mode, 1 for Photo mode, or 'q' to quit: ")
