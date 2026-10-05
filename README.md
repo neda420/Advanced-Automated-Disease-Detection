@@ -1,5 +1,5 @@
 # Mango Tree Disease Detection and Irrigation System
-
+ 
 This project implements a real-time mango tree disease detection and targeted irrigation system. The solution leverages image processing, machine learning, and hardware automation to detect diseases in mango leaves and provide precise irrigation to affected areas.
   
 ## Features  
